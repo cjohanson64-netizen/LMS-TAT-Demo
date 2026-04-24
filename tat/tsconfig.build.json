@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "typeRoots": ["../client/node_modules/@types"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noCheck": true,
+    "noEmit": false,
+    "outDir": "./.tat-build",
+    "rootDir": "."
+  },
+  "include": ["./run-module.ts", "./tat-library/**/*.ts"]
+}

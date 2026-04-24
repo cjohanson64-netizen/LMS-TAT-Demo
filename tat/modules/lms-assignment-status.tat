@@ -1,0 +1,279 @@
+assignment_node = <{ semanticId: "assignment:demo-assignment", title: "Rhythm Dictation 2" }>
+course_node = <{ semanticId: "course:demo-course", title: "Beginning Theory" }>
+teacher_node = <{ semanticId: "teacher:demo-teacher", name: "Grace Hopper" }>
+student_node = <{ semanticId: "student:demo-student-1", name: "Ava Student" }>
+student_node_2 = <{ semanticId: "student:demo-student-2", name: "Ben Student" }>
+submission_node = <{ semanticId: "submission:demo-submission-1", title: "Submission demo 1" }>
+submission_node_2 = <{ semanticId: "submission:demo-submission-2", title: "Submission demo 2" }>
+
+@seed:
+  nodes: [
+    assignment_node,
+    course_node,
+    teacher_node,
+    student_node,
+    student_node_2,
+    submission_node,
+    submission_node_2
+  ]
+  edges: [
+    teaches_edge := [teacher_node : "teaches" : course_node],
+    has_assignment_edge := [course_node : "hasAssignment" : assignment_node],
+    enrolled_edge := [student_node : "enrolledIn" : course_node],
+    enrolled_edge_2 := [student_node_2 : "enrolledIn" : course_node],
+    submitted_edge := [student_node : "submitted" : submission_node],
+    submitted_edge_2 := [student_node_2 : "submitted" : submission_node_2],
+    for_assignment_edge := [submission_node : "forAssignment" : assignment_node],
+    for_assignment_edge_2 := [submission_node_2 : "forAssignment" : assignment_node]
+  ]
+  root: assignment_node
+
+assignmentStatusGraph := @seed
+  -> @graft.meta(assignment_node, "label", "Rhythm Dictation 2")
+  -> @graft.meta(assignment_node, "type", "assignment")
+  -> @graft.meta(course_node, "label", "Beginning Theory")
+  -> @graft.meta(course_node, "type", "course")
+  -> @graft.meta(teacher_node, "label", "Grace Hopper")
+  -> @graft.meta(teacher_node, "type", "teacher")
+  -> @graft.meta(student_node, "label", "Ava Student")
+  -> @graft.meta(student_node, "type", "student")
+  -> @graft.meta(student_node_2, "label", "Ben Student")
+  -> @graft.meta(student_node_2, "type", "student")
+  -> @graft.meta(submission_node, "label", "Submission demo 1")
+  -> @graft.meta(submission_node, "type", "submission")
+  -> @graft.meta(submission_node_2, "label", "Submission demo 2")
+  -> @graft.meta(submission_node_2, "type", "submission")
+
+  -> @graft.state(submission_node, "reviewState", "reviewed")
+  -> @graft.state(submission_node, "gradingState", "graded")
+  -> @graft.state(submission_node, "feedbackState", "available")
+  -> @graft.state(submission_node, "score", 92)
+  -> @graft.state(submission_node, "isPassing", true)
+  -> @graft.state(submission_node, "masteryLabel", "advanced")
+  -> @graft.state(submission_node, "masteryBand", "exceeding")
+
+  -> @graft.state(submission_node_2, "reviewState", "needs_review")
+  -> @graft.state(submission_node_2, "gradingState", "ungraded")
+  -> @graft.state(submission_node_2, "feedbackState", "not_available")
+  -> @graft.state(submission_node_2, "score", null)
+  -> @graft.state(submission_node_2, "isPassing", null)
+  -> @graft.state(submission_node_2, "masteryLabel", "unscored")
+  -> @graft.state(submission_node_2, "masteryBand", "unscored")
+
+  -> @graft.state(assignment_node, "viewerRole", "TEACHER")
+  -> @graft.state(assignment_node, "viewerId", "demo-teacher")
+  -> @graft.state(assignment_node, "statusCode", "unknown")
+  -> @graft.state(assignment_node, "statusLabel", "Unknown")
+  -> @graft.state(assignment_node, "statusTone", "neutral")
+  -> @graft.state(assignment_node, "nextActionCode", "none")
+  -> @graft.state(assignment_node, "nextActionLabel", "No Action Available")
+
+  -> @if {
+    when:
+      assignment_node.state.viewerRole == "STUDENT" &&
+      !(
+        (
+          @query {
+            subject: student_node,
+            relation: "submitted",
+            object: submission_node
+          } &&
+          @query {
+            subject: submission_node,
+            relation: "forAssignment",
+            object: assignment_node
+          }
+        ) ||
+        (
+          @query {
+            subject: student_node,
+            relation: "submitted",
+            object: submission_node_2
+          } &&
+          @query {
+            subject: submission_node_2,
+            relation: "forAssignment",
+            object: assignment_node
+          }
+        )
+      )
+    then:
+      @graft.state(assignment_node, "statusCode", "awaiting_submission")
+      -> @graft.state(assignment_node, "statusLabel", "Not Submitted")
+      -> @graft.state(assignment_node, "statusTone", "danger")
+      -> @graft.state(assignment_node, "nextActionCode", "submit_work")
+      -> @graft.state(assignment_node, "nextActionLabel", "Submit Assignment")
+  }
+
+  -> @if {
+    when:
+      assignment_node.state.viewerRole == "STUDENT" &&
+      (
+        (
+          @query {
+            subject: student_node,
+            relation: "submitted",
+            object: submission_node
+          } &&
+          @query {
+            subject: submission_node,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node.state.gradingState == "ungraded"
+        ) ||
+        (
+          @query {
+            subject: student_node,
+            relation: "submitted",
+            object: submission_node_2
+          } &&
+          @query {
+            subject: submission_node_2,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node_2.state.gradingState == "ungraded"
+        )
+      )
+    then:
+      @graft.state(assignment_node, "statusCode", "submitted")
+      -> @graft.state(assignment_node, "statusLabel", "Submitted")
+      -> @graft.state(assignment_node, "statusTone", "info")
+      -> @graft.state(assignment_node, "nextActionCode", "wait_for_grade")
+      -> @graft.state(assignment_node, "nextActionLabel", "Wait for Grade")
+  }
+
+  -> @if {
+    when:
+      assignment_node.state.viewerRole == "STUDENT" &&
+      (
+        (
+          @query {
+            subject: student_node,
+            relation: "submitted",
+            object: submission_node
+          } &&
+          @query {
+            subject: submission_node,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node.state.gradingState == "graded"
+        ) ||
+        (
+          @query {
+            subject: student_node,
+            relation: "submitted",
+            object: submission_node_2
+          } &&
+          @query {
+            subject: submission_node_2,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node_2.state.gradingState == "graded"
+        )
+      )
+    then:
+      @graft.state(assignment_node, "statusCode", "graded")
+      -> @graft.state(assignment_node, "statusLabel", "Graded")
+      -> @graft.state(assignment_node, "statusTone", "success")
+      -> @graft.state(assignment_node, "nextActionCode", "review_feedback")
+      -> @graft.state(assignment_node, "nextActionLabel", "Review Feedback")
+  }
+
+  -> @if {
+    when:
+      assignment_node.state.viewerRole == "TEACHER" &&
+      !(
+        @query {
+          subject: submission_node,
+          relation: "forAssignment",
+          object: assignment_node
+        } ||
+        @query {
+          subject: submission_node_2,
+          relation: "forAssignment",
+          object: assignment_node
+        }
+      )
+    then:
+      @graft.state(assignment_node, "statusCode", "no_submissions")
+      -> @graft.state(assignment_node, "statusLabel", "No Submissions")
+      -> @graft.state(assignment_node, "statusTone", "neutral")
+      -> @graft.state(assignment_node, "nextActionCode", "none")
+      -> @graft.state(assignment_node, "nextActionLabel", "No Action Needed")
+  }
+
+  -> @if {
+    when:
+      assignment_node.state.viewerRole == "TEACHER" &&
+      (
+        (
+          @query {
+            subject: submission_node,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node.state.gradingState == "ungraded"
+        ) ||
+        (
+          @query {
+            subject: submission_node_2,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node_2.state.gradingState == "ungraded"
+        )
+      )
+    then:
+      @graft.state(assignment_node, "statusCode", "needs_grading")
+      -> @graft.state(assignment_node, "statusLabel", "Needs Grading")
+      -> @graft.state(assignment_node, "statusTone", "warning")
+      -> @graft.state(assignment_node, "nextActionCode", "grade_submissions")
+      -> @graft.state(assignment_node, "nextActionLabel", "Grade Submissions")
+  }
+
+  -> @if {
+    when:
+      assignment_node.state.viewerRole == "TEACHER" &&
+      (
+        @query {
+          subject: submission_node,
+          relation: "forAssignment",
+          object: assignment_node
+        } ||
+        @query {
+          subject: submission_node_2,
+          relation: "forAssignment",
+          object: assignment_node
+        }
+      ) &&
+      !(
+        (
+          @query {
+            subject: submission_node,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node.state.gradingState == "ungraded"
+        ) ||
+        (
+          @query {
+            subject: submission_node_2,
+            relation: "forAssignment",
+            object: assignment_node
+          } &&
+          submission_node_2.state.gradingState == "ungraded"
+        )
+      )
+    then:
+      @graft.state(assignment_node, "statusCode", "graded")
+      -> @graft.state(assignment_node, "statusLabel", "Graded")
+      -> @graft.state(assignment_node, "statusTone", "success")
+      -> @graft.state(assignment_node, "nextActionCode", "view_submissions")
+      -> @graft.state(assignment_node, "nextActionLabel", "View Submissions")
+  }
+
+  <> @project(format: "assignment_status", focus: assignment_node)

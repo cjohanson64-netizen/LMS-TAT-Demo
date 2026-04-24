@@ -20,14 +20,17 @@ Traditional apps:
 
 ```text
 Backend → Data → Frontend → Logic → UI
+```
 
 TAT-driven apps:
 
+```text
 Backend → Semantic Graph (TAT) → Projection → UI
+```
 
 This shifts responsibility from frontend logic to backend semantics.
 
-🧩 Key Features
+## 🧩 Key Features
 ✅ Course, assignment, and submission management
 ✅ Role-based access (Admin, Teacher, Student)
 ✅ Assignment status system (No Submissions, Needs Grading, Graded)
@@ -35,14 +38,17 @@ This shifts responsibility from frontend logic to backend semantics.
 ✅ Semantic projections via TAT
 ✅ Dynamic UI rendering in React
 🔥 What Makes This Different
+
 1. Semantic UI Layer (TAT)
 
 Instead of computing UI state in React, the backend defines:
 
+```JSON
 {
   "status": { "code": "needs_grading", "label": "Needs Grading" },
   "nextAction": { "code": "grade_submissions", "label": "Grade Submissions" }
 }
+```
 
 The frontend simply renders and reacts.
 
@@ -50,28 +56,39 @@ The frontend simply renders and reacts.
 
 Buttons are not hardcoded:
 
+```TypeScript
 <button>{assignment.nextAction.label}</button>
+```
 
 The backend decides:
 
-What action exists
-When it’s available
-What it should do
+- What action exists
+- When it’s available
+- What it should do
+
 3. Reduced Frontend Complexity
 No duplicated business logic
 No manual status computation
 UI becomes a pure rendering layer
-🏗️ Tech Stack
+
+---
+
+## 🏗️ Tech Stack
+
 Backend
-Java (Spring Boot)
-REST APIs
-TAT (TryAngleTree DSL + runtime)
+- Java (Spring Boot)
+- REST APIs
+- TAT (TryAngleTree DSL + runtime)
+
 Frontend
-React
-TypeScript
-Component-based UI
-Semantic rendering from projections
-📂 Project Structure
+- React
+- TypeScript
+- Component-based UI
+- Semantic rendering from projections
+
+## 📂 Project Structure
+
+```
 server/
   ├── controllers/
   ├── services/
@@ -88,37 +105,51 @@ client/
   │     └── submissions/
   ├── api/
   └── components/
-⚙️ Running the Project
+```
+
+## ⚙️ Running the Project
+
 Backend
+```bash
 cd server
 ./mvnw spring-boot:run
+```
+
 Frontend
+```bash
 cd client
 npm install
 npm run dev
-🔑 Example Flow
-Teacher creates assignment
-Student submits work
-Backend generates TAT graph
-Projection computes:
+```
+
+## 🔑 Example Flow
+1. Teacher creates assignment
+2. Student submits work
+3. Backend generates TAT graph
+4. Projection computes:
+
+```JSON
 {
   "status": "needs_grading",
   "nextAction": "grade_submissions"
 }
+```
+
 UI updates automatically
-🧪 Future Directions
-🔄 Real-time projection updates
-🧠 Fully TAT-driven navigation
-📊 Analytics via graph traversal
-🎮 Extending TAT to other domains (RPG, education tools, etc.)
-👤 Author
+
+## 🧪 Future Directions
+- 🔄 Real-time projection updates
+- 🧠 Fully TAT-driven navigation
+- 📊 Analytics via graph traversal
+- 🎮 Extending TAT to other domains (RPG, education tools, etc.)
+- 👤 Author
 
 Carl Johanson  
 [LinkedIn](https://www.linkedin.com/in/carlbiggersjohanson/)  
 [Portfolio](https://my-portfolio-ashy-sigma-26.vercel.app/)
 
-💡 Final Thought
+## 💡 Final Thought
 
 This project is an exploration of what happens when:
 
-UI becomes a projection of meaning, not just data.# LMS-TAT-Demo
+> UI becomes a projection of meaning, not just data.# LMS-TAT-Demo

@@ -1,0 +1,40 @@
+student_ava = <{ semanticId: "student:ava", name: "Ava Johnson" }>
+course_music_theory = <{ semanticId: "course:music-theory", title: "Intro to Music Theory" }>
+assignment_rhythm_1 = <{ semanticId: "assignment:rhythm-1", title: "Rhythm Dictation 1" }>
+submission_ava_rhythm_1 = <{ semanticId: "submission:ava-rhythm-1", title: "Ava Submission 1" }>
+
+@seed:
+  nodes: [
+    student_ava,
+    course_music_theory,
+    assignment_rhythm_1,
+    submission_ava_rhythm_1
+  ]
+  edges: [
+    enrolledEdge := [student_ava : "enrolledIn" : course_music_theory],
+    assignmentEdge := [course_music_theory : "hasAssignment" : assignment_rhythm_1],
+    submittedEdge := [student_ava : "submitted" : submission_ava_rhythm_1],
+    targetEdge := [submission_ava_rhythm_1 : "forAssignment" : assignment_rhythm_1]
+  ]
+  state: {
+    submissionStatus: "graded",
+    score: 92
+  }
+  meta: {
+    domain: "lms",
+    kind: "submission"
+  }
+  root: submission_ava_rhythm_1
+
+lmsSubmissionGraph := @seed
+  -> @graft.state(submission_ava_rhythm_1, "reviewState", "graded")
+  -> @graft.state(submission_ava_rhythm_1, "score", 92)
+  -> @graft.meta(student_ava, "label", "Ava Johnson")
+  -> @graft.meta(student_ava, "type", "student")
+  -> @graft.meta(course_music_theory, "label", "Intro to Music Theory")
+  -> @graft.meta(course_music_theory, "type", "course")
+  -> @graft.meta(assignment_rhythm_1, "label", "Rhythm Dictation 1")
+  -> @graft.meta(assignment_rhythm_1, "type", "assignment")
+  -> @graft.meta(submission_ava_rhythm_1, "label", "Ava Submission 1")
+  -> @graft.meta(submission_ava_rhythm_1, "type", "submission")
+  <> @project(format: "detail", focus: submission_ava_rhythm_1, include: ["id", "label", "type", "state", "meta", "relationships"])
